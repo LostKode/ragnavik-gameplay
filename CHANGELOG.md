@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Release the tested personalized starter chest for synchronized client and server installation.
+- Add the protected Hexium publication workflow for the new gameplay repository.
+
 ## 0.1.3
 
 - Preserve starter chest matches across incremental scan batches.

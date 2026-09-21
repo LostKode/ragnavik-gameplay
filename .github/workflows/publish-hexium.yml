@@ -1,0 +1,84 @@
+name: Publish to Hexium
+run-name: Hexium automatic release ${{ github.run_id }}
+
+on:
+  push:
+    branches: [main]
+    paths: ["package/manifest.json", ".github/workflows/publish-hexium.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hexium-ragnavik-gameplay
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ${{ vars.RELEASE_RUNNER || 'ubuntu-latest' }}
+    environment: hexium-production
+    env:
+      VALHEIM_MANAGED_DIR: ${{ vars.VALHEIM_MANAGED_DIR }}
+      BEPINEX_CORE_DIR: ${{ vars.BEPINEX_CORE_DIR }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve release metadata
+        run: |
+          version=$(python3 -c 'import json; print(json.load(open("package/manifest.json"))["version_number"])')
+          echo "EXPECTED_VERSION=$version" >> "$GITHUB_ENV"
+          echo "PACKAGE=artifacts/LostKode-Ragnavik_Gameplay-$version.zip" >> "$GITHUB_ENV"
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Resolve build references
+        shell: bash
+        run: |
+          if [[ -d "${VALHEIM_MANAGED_DIR:-}" && -d "${BEPINEX_CORE_DIR:-}" ]]; then
+            reference_dir="$VALHEIM_MANAGED_DIR"
+          else
+            install_root="$RUNNER_TEMP/ragnavik-build-references"
+            reference_version="1.2214.6"
+            reference_sha256="7b014ef8e605a251c6c3999f3c6a7e3ce1db59e7e0307733d4b80e3431893e86"
+            mkdir -p "$install_root"
+            curl --fail --location --retry 3 "https://api.nuget.org/v3-flatcontainer/coffeenova.valheim.managedreferences/$reference_version/coffeenova.valheim.managedreferences.$reference_version.nupkg" --output "$install_root/references.nupkg"
+            echo "$reference_sha256  $install_root/references.nupkg" | sha256sum --check --strict
+            unzip -q "$install_root/references.nupkg" -d "$install_root/package"
+            reference_dir="$install_root/package/lib/net46"
+            echo "VALHEIM_MANAGED_DIR=$reference_dir" >> "$GITHUB_ENV"
+            echo "BEPINEX_CORE_DIR=$reference_dir" >> "$GITHUB_ENV"
+          fi
+          jotunn_dir="$RUNNER_TEMP/jotunn-2.30.1"
+          mkdir -p "$jotunn_dir"
+          curl --fail --location --retry 3 "https://github.com/Valheim-Modding/Jotunn/releases/download/v2.30.1/Jotunn.dll" --output "$jotunn_dir/Jotunn.dll"
+          echo "493754eb0ca7eaa416b82910ffbca661fa760eeeb1c560d4c85a67cb4affb4a1  $jotunn_dir/Jotunn.dll" | sha256sum --check --strict
+          echo "JOTUNN_DIR=$jotunn_dir" >> "$GITHUB_ENV"
+      - name: Build and test package
+        run: |
+          ./scripts/build.sh
+          ./scripts/package.sh
+          python3 scripts/validate_package.py "$PACKAGE"
+      - run: dotnet tool restore
+      - name: Prepare Hexium release metadata
+        run: >-
+          python3 scripts/hexium_publish.py prepare
+          --manifest package/manifest.json
+          --package "$PACKAGE"
+          --expected-version "$EXPECTED_VERSION"
+          --release-id "${{ github.run_id }}"
+          --repository https://hexium.gg
+          --category "Client & Server" --category Mods --category "Open Source" --category "Valheim 1.0"
+          --output .tcli/hexium.toml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LostKode-Ragnavik_Gameplay-${{ env.EXPECTED_VERSION }}
+          path: ${{ env.PACKAGE }}
+          if-no-files-found: error
+      - name: Require Hexium token
+        env:
+          HEXIUM_AUTH_TOKEN: ${{ secrets.HEXIUM_AUTH_TOKEN }}
+        run: test -n "$HEXIUM_AUTH_TOKEN"
+      - name: Publish package
+        env:
+          HEXIUM_AUTH_TOKEN: ${{ secrets.HEXIUM_AUTH_TOKEN }}
+        run: dotnet tool run tcli publish --config-path .tcli/hexium.toml --file "$PACKAGE" --token "$HEXIUM_AUTH_TOKEN"

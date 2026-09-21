@@ -1,7 +1,7 @@
 {
   "name": "Ragnavik_Gameplay",
-  "version_number": "0.1.3",
-  "website_url": "https://ragnavik.vercel.app",
+  "version_number": "0.1.4",
+  "website_url": "https://www.ragnavik.com",
   "description": "Modular, server-authoritative gameplay features for Ragnavik.",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2350",
