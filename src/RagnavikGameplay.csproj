@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <OutputType>Library</OutputType>
+    <AssemblyName>RagnavikGameplay</AssemblyName>
+    <RootNamespace>RagnavikGameplay</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="assembly_valheim" HintPath="$(ValheimManagedDir)/assembly_valheim.dll" />
+    <Reference Include="assembly_utils" HintPath="$(ValheimManagedDir)/assembly_utils.dll" />
+    <Reference Include="Splatform" HintPath="$(ValheimManagedDir)/Splatform.dll" />
+    <Reference Include="UnityEngine" HintPath="$(ValheimManagedDir)/UnityEngine.dll" />
+    <Reference Include="UnityEngine.CoreModule" HintPath="$(ValheimManagedDir)/UnityEngine.CoreModule.dll" />
+    <Reference Include="BepInEx" HintPath="$(BepInExCoreDir)/BepInEx.dll" />
+    <Reference Include="0Harmony" HintPath="$(BepInExCoreDir)/0Harmony.dll" />
+    <Reference Include="Jotunn" HintPath="$(JotunnDir)/Jotunn.dll" />
+  </ItemGroup>
+</Project>
+
