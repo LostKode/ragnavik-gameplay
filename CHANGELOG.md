@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.3
+
+- Preserve starter chest matches across incremental scan batches.
+- Remove surplus starter chest ZDOs while retaining one canonical chest.
+
 ## 0.1.2
 
 - Rewind local claim responses before reading them so interaction grants the starter kit.

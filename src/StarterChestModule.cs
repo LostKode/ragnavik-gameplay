@@ -115,7 +115,11 @@ internal sealed class StarterChestModule : IDisposable
 
     private void TryPlaceChest()
     {
-        _found.Clear();
+        if (_scanIndex == 0)
+        {
+            _found.Clear();
+        }
+
         if (!ZDOMan.instance.GetAllZDOsWithPrefabIterative(PrefabName, _found, ref _scanIndex))
         {
             // Continue the bounded ZDO scan on the next frame. Waiting five seconds
@@ -125,8 +129,19 @@ internal sealed class StarterChestModule : IDisposable
         }
 
         _scanIndex = 0;
-        if (_found.Any(zdo => zdo != null && zdo.IsValid()))
+        _found.RemoveAll(zdo => zdo == null || !zdo.IsValid());
+        if (_found.Count > 0)
         {
+            for (var index = 1; index < _found.Count; index++)
+            {
+                ZDOMan.instance.DestroyZDO(_found[index]);
+            }
+
+            if (_found.Count > 1)
+            {
+                _plugin.Log.LogWarning($"Removed {_found.Count - 1} duplicate starter chest(s); one remains.");
+            }
+
             _nextPlacementAttempt = float.MaxValue;
             return;
         }
