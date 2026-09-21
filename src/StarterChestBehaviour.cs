@@ -6,7 +6,16 @@ internal sealed class StarterChestBehaviour : MonoBehaviour, Hoverable, Interact
 {
     public string GetHoverName() => "Starter Supplies";
 
-    public string GetHoverText() => "[<color=yellow><b>$KEY_Use</b></color>] Claim starter supplies";
+    public string GetHoverText()
+    {
+        var useKey = ZInput.instance?.GetBoundKeyString("Use", false);
+        if (string.IsNullOrWhiteSpace(useKey))
+        {
+            useKey = "E";
+        }
+
+        return $"[<color=yellow><b>{useKey}</b></color>] Claim starter supplies";
+    }
 
     public float GetHoverOffset() => 1f;
 

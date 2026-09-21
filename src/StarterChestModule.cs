@@ -12,7 +12,8 @@ namespace RagnavikGameplay;
 internal sealed class StarterChestModule : IDisposable
 {
     private const string PrefabName = "RagnavikStarterChest";
-    private const string ClaimRpcName = "StarterChestClaim";
+    private const string ClaimRequestRpcName = "StarterChestClaimRequest";
+    private const string ClaimResponseRpcName = "StarterChestClaimResponse";
     private static StarterChestModule? _instance;
 
     private readonly GameplayPlugin _plugin;
@@ -22,7 +23,8 @@ internal sealed class StarterChestModule : IDisposable
     private readonly ConfigEntry<float> _offsetX;
     private readonly ConfigEntry<float> _offsetZ;
     private readonly ConfigEntry<float> _rotation;
-    private CustomRPC? _claimRpc;
+    private CustomRPC? _claimRequestRpc;
+    private CustomRPC? _claimResponseRpc;
     private GameObject? _prefab;
     private float _nextPlacementAttempt;
     private int _scanIndex;
@@ -49,7 +51,8 @@ internal sealed class StarterChestModule : IDisposable
     internal void Install()
     {
         _instance = this;
-        _claimRpc = NetworkManager.Instance.AddRPC(ClaimRpcName, ServerReceive, ClientReceive);
+        _claimRequestRpc = NetworkManager.Instance.AddRPC(ClaimRequestRpcName, ServerReceiveRequest, IgnorePackage);
+        _claimResponseRpc = NetworkManager.Instance.AddRPC(ClaimResponseRpcName, IgnorePackage, ClientReceiveResponse);
         PrefabManager.OnVanillaPrefabsAvailable += RegisterPrefab;
     }
 
@@ -67,12 +70,18 @@ internal sealed class StarterChestModule : IDisposable
 
     internal static void RequestClaim()
     {
-        if (_instance?._claimRpc == null || ZRoutedRpc.instance == null)
+        if (_instance?._claimRequestRpc == null || ZRoutedRpc.instance == null)
         {
             return;
         }
 
-        _instance._claimRpc.Initiate();
+        if (ZNet.instance != null && ZNet.instance.IsServer())
+        {
+            _instance.HandleLocalClaim();
+            return;
+        }
+
+        _instance._claimRequestRpc.Initiate();
     }
 
     public void Dispose()
@@ -133,16 +142,8 @@ internal sealed class StarterChestModule : IDisposable
         _plugin.Log.LogInfo($"Placed starter chest at {position} in the existing StartTemple ring.");
     }
 
-    private IEnumerator ServerReceive(long sender, ZPackage package)
+    private IEnumerator ServerReceiveRequest(long sender, ZPackage package)
     {
-        var response = new ZPackage();
-        if (!_enabled.Value || ZoneSystem.instance == null || ZNet.instance == null)
-        {
-            WriteResponse(response, false, "Starter supplies are unavailable.", Array.Empty<StarterItem>());
-            _claimRpc!.SendPackage(sender, response);
-            yield break;
-        }
-
         var peer = ZNet.instance.GetPeers().FirstOrDefault(candidate => candidate.m_uid == sender);
         var platformId = string.Empty;
         if (peer != null)
@@ -154,11 +155,48 @@ internal sealed class StarterChestModule : IDisposable
         {
             platformId = peer.m_socket.GetHostName();
         }
+
+        _claimResponseRpc!.SendPackage(sender, BuildClaimResponse(platformId));
+        yield break;
+    }
+
+    private IEnumerator ClientReceiveResponse(long sender, ZPackage package)
+    {
+        ApplyResponse(package);
+        yield break;
+    }
+
+    private IEnumerator IgnorePackage(long sender, ZPackage package)
+    {
+        yield break;
+    }
+
+    private void HandleLocalClaim()
+    {
+        var platformId = string.Empty;
+        if (ZNet.instance != null && Player.m_localPlayer != null)
+        {
+            var localName = Player.m_localPlayer.GetPlayerName();
+            var playerInfo = ZNet.instance.GetPlayerList().FirstOrDefault(info => info.m_name == localName);
+            platformId = playerInfo.m_userInfo.m_id.ToString();
+        }
+
+        ApplyResponse(BuildClaimResponse(platformId));
+    }
+
+    private ZPackage BuildClaimResponse(string platformId)
+    {
+        var response = new ZPackage();
+        if (!_enabled.Value || ZoneSystem.instance == null || ZNet.instance == null)
+        {
+            WriteResponse(response, false, "Starter supplies are unavailable.", Array.Empty<StarterItem>());
+            return response;
+        }
+
         if (string.IsNullOrWhiteSpace(platformId))
         {
             WriteResponse(response, false, "Your platform account could not be verified.", Array.Empty<StarterItem>());
-            _claimRpc!.SendPackage(sender, response);
-            yield break;
+            return response;
         }
 
         IReadOnlyList<StarterItem> kit;
@@ -170,26 +208,24 @@ internal sealed class StarterChestModule : IDisposable
         {
             _plugin.Log.LogError(exception.Message);
             WriteResponse(response, false, "The starter kit is misconfigured.", Array.Empty<StarterItem>());
-            _claimRpc!.SendPackage(sender, response);
-            yield break;
+            return response;
         }
 
         var claimKey = StarterKit.ClaimKey(platformId, _kitId.Value);
         if (ZoneSystem.instance.GetGlobalKey(claimKey))
         {
             WriteResponse(response, false, "You have already claimed these starter supplies.", Array.Empty<StarterItem>());
-            _claimRpc!.SendPackage(sender, response);
-            yield break;
+            return response;
         }
 
         // The server records authorization before delivery, making reconnect and
         // character recreation unable to duplicate the kit.
         ZoneSystem.instance.SetGlobalKey(claimKey);
         WriteResponse(response, true, "Starter supplies claimed.", kit);
-        _claimRpc!.SendPackage(sender, response);
+        return response;
     }
 
-    private IEnumerator ClientReceive(long sender, ZPackage package)
+    private void ApplyResponse(ZPackage package)
     {
         var success = package.ReadBool();
         var message = package.ReadString();
@@ -205,7 +241,6 @@ internal sealed class StarterChestModule : IDisposable
         }
 
         MessageHud.instance?.ShowMessage(MessageHud.MessageType.Center, message);
-        yield break;
     }
 
     private void GiveItemOrDrop(string prefabName, int amount)
