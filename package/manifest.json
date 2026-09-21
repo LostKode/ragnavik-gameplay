@@ -1,6 +1,6 @@
 {
   "name": "Ragnavik_Gameplay",
-  "version_number": "0.1.4",
+  "version_number": "1.0.0",
   "website_url": "https://www.ragnavik.com",
   "description": "Modular, server-authoritative gameplay features for Ragnavik.",
   "dependencies": [

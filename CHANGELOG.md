@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0
+
+- Promote the tested personalized starter chest to its first stable release.
+- Keep the existing-world placement, per-player claim tracking, configured Use key, and duplicate cleanup fixes.
+
 ## 0.1.4
 
 - Release the tested personalized starter chest for synchronized client and server installation.
