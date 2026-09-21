@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2
+
+- Rewind local claim responses before reading them so interaction grants the starter kit.
+- Complete existing-world chest detection across consecutive frames for prompt placement.
+
 ## 0.1.1
 
 - Resolve the chest interaction prompt from the player's current Use binding.

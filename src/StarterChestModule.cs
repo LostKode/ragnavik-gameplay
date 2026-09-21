@@ -118,6 +118,9 @@ internal sealed class StarterChestModule : IDisposable
         _found.Clear();
         if (!ZDOMan.instance.GetAllZDOsWithPrefabIterative(PrefabName, _found, ref _scanIndex))
         {
+            // Continue the bounded ZDO scan on the next frame. Waiting five seconds
+            // between batches made placement depend on how long the player roamed.
+            _nextPlacementAttempt = Time.realtimeSinceStartup;
             return;
         }
 
@@ -181,7 +184,9 @@ internal sealed class StarterChestModule : IDisposable
             platformId = playerInfo.m_userInfo.m_id.ToString();
         }
 
-        ApplyResponse(BuildClaimResponse(platformId));
+        var response = BuildClaimResponse(platformId);
+        response.SetPos(0);
+        ApplyResponse(response);
     }
 
     private ZPackage BuildClaimResponse(string platformId)
