@@ -48,10 +48,10 @@ jobs:
             echo "VALHEIM_MANAGED_DIR=$reference_dir" >> "$GITHUB_ENV"
             echo "BEPINEX_CORE_DIR=$reference_dir" >> "$GITHUB_ENV"
           fi
-          jotunn_dir="$RUNNER_TEMP/jotunn-2.30.1"
+          jotunn_dir="$RUNNER_TEMP/jotunn-2.30.2"
           mkdir -p "$jotunn_dir"
-          curl --fail --location --retry 3 "https://github.com/Valheim-Modding/Jotunn/releases/download/v2.30.1/Jotunn.dll" --output "$jotunn_dir/Jotunn.dll"
-          echo "493754eb0ca7eaa416b82910ffbca661fa760eeeb1c560d4c85a67cb4affb4a1  $jotunn_dir/Jotunn.dll" | sha256sum --check --strict
+          curl --fail --location --retry 3 "https://github.com/Valheim-Modding/Jotunn/releases/download/v2.30.2/Jotunn.dll" --output "$jotunn_dir/Jotunn.dll"
+          echo "68916ec125a87bc19bd57e0d890411616d15518ac5e809f10d14a9e023890b60  $jotunn_dir/Jotunn.dll" | sha256sum --check --strict
           echo "JOTUNN_DIR=$jotunn_dir" >> "$GITHUB_ENV"
       - name: Build and test package
         run: |

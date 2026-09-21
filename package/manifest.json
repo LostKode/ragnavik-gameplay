@@ -1,11 +1,11 @@
 {
   "name": "Ragnavik_Gameplay",
-  "version_number": "1.0.0",
+  "version_number": "1.0.1",
   "website_url": "https://www.ragnavik.com",
   "description": "Modular, server-authoritative gameplay features for Ragnavik.",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2350",
-    "ValheimModding-Jotunn-2.30.1"
+    "ValheimModding-Jotunn-2.30.2"
   ]
 }
 

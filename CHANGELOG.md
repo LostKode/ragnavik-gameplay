@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Update Jotunn to 2.30.2 for corrected Deep North asset mocking and legacy build-menu support.
+
 ## 1.0.0
 
 - Promote the tested personalized starter chest to its first stable release.
