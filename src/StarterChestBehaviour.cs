@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace RagnavikGameplay;
 
-internal sealed class StarterChestBehaviour : MonoBehaviour, Hoverable, Interactable
+public sealed class StarterChestBehaviour : MonoBehaviour, Hoverable, Interactable
 {
     public string GetHoverName() => "Starter Supplies";
 
