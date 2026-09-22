@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3
+
+- Make the starter chest indestructible and prevent creatures from selecting it as a target.
+- Prevent players from dismantling the starter chest as a normal building piece.
+- Restore the starter chest automatically if its networked world object goes missing.
+
 ## 1.0.2
 
 - Restore starter chest hover text and interaction by making its Unity behavior instantiable.
