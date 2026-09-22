@@ -260,7 +260,13 @@ internal sealed class StarterChestModule : IDisposable
             }
         }
 
-        MessageHud.instance?.ShowMessage(MessageHud.MessageType.Center, message);
+        MessageHud.instance?.ShowMessage(
+            MessageHud.MessageType.Center,
+            message,
+            amount: 0,
+            icon: null,
+            showDespiteHiddenHUD: false,
+            log: false);
     }
 
     private void GiveItemOrDrop(string prefabName, int amount)
@@ -278,7 +284,15 @@ internal sealed class StarterChestModule : IDisposable
         while (remaining > 0)
         {
             var stack = Math.Min(remaining, stackSize);
-            var item = Player.m_localPlayer.GetInventory().AddItem(prefabName, stack, drop.m_itemData.m_quality, 0, 0L, string.Empty, false);
+            var item = Player.m_localPlayer.GetInventory().AddItem(
+                prefabName,
+                stack,
+                drop.m_itemData.m_quality,
+                variant: 0,
+                crafterID: 0L,
+                crafterName: string.Empty,
+                cheated: false,
+                pickedUp: false);
             if (item == null)
             {
                 var spawned = UnityEngine.Object.Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward, Quaternion.identity);

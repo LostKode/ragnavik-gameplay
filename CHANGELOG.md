@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.2
+
+- Restore starter chest hover text and interaction by making its Unity behavior instantiable.
+- Update starter-kit messages and item delivery for the current Valheim API.
+
 ## 1.0.1
 
 - Update Jotunn to 2.30.2 for corrected Deep North asset mocking and legacy build-menu support.
