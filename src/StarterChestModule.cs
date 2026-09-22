@@ -14,6 +14,14 @@ internal sealed class StarterChestModule : IDisposable
     private const string PrefabName = "RagnavikStarterChest";
     private const string ClaimRequestRpcName = "StarterChestClaimRequest";
     private const string ClaimResponseRpcName = "StarterChestClaimResponse";
+    private static readonly Type[] ShowMessageParameterTypes =
+        { typeof(MessageHud.MessageType), typeof(string), typeof(int), typeof(Sprite), typeof(bool), typeof(bool) };
+    private static readonly Type[] AddItemParameterTypes =
+        { typeof(string), typeof(int), typeof(int), typeof(int), typeof(long), typeof(string), typeof(bool), typeof(bool) };
+    private static readonly System.Reflection.MethodInfo? ShowMessageMethod =
+        typeof(MessageHud).GetMethod("ShowMessage", ShowMessageParameterTypes);
+    private static readonly System.Reflection.MethodInfo? AddItemMethod =
+        typeof(Inventory).GetMethod("AddItem", AddItemParameterTypes);
     private static StarterChestModule? _instance;
 
     private readonly GameplayPlugin _plugin;
@@ -50,6 +58,15 @@ internal sealed class StarterChestModule : IDisposable
 
     internal void Install()
     {
+        if (ShowMessageMethod == null)
+        {
+            _plugin.Log.LogError("Current MessageHud.ShowMessage API was not found; starter claim messages will be unavailable.");
+        }
+        if (AddItemMethod == null)
+        {
+            _plugin.Log.LogError("Current Inventory.AddItem API was not found; starter items will drop at the player instead.");
+        }
+
         _instance = this;
         _claimRequestRpc = NetworkManager.Instance.AddRPC(ClaimRequestRpcName, ServerReceiveRequest, IgnorePackage);
         _claimResponseRpc = NetworkManager.Instance.AddRPC(ClaimResponseRpcName, IgnorePackage, ClientReceiveResponse);
@@ -260,7 +277,10 @@ internal sealed class StarterChestModule : IDisposable
             }
         }
 
-        MessageHud.instance?.ShowMessage(MessageHud.MessageType.Center, message, 0, null, false, false);
+        if (MessageHud.instance != null && ShowMessageMethod != null)
+        {
+            ShowMessageMethod.Invoke(MessageHud.instance, new object?[] { MessageHud.MessageType.Center, message, 0, null, false, false });
+        }
     }
 
     private void GiveItemOrDrop(string prefabName, int amount)
@@ -278,7 +298,10 @@ internal sealed class StarterChestModule : IDisposable
         while (remaining > 0)
         {
             var stack = Math.Min(remaining, stackSize);
-            var item = Player.m_localPlayer.GetInventory().AddItem(prefabName, stack, drop.m_itemData.m_quality, 0, 0L, string.Empty, false, false);
+            var item = AddItemMethod?.Invoke(
+                Player.m_localPlayer.GetInventory(),
+                new object[] { prefabName, stack, drop.m_itemData.m_quality, 0, 0L, string.Empty, false, false })
+                as ItemDrop.ItemData;
             if (item == null)
             {
                 var spawned = UnityEngine.Object.Instantiate(prefab, Player.m_localPlayer.transform.position + Player.m_localPlayer.transform.forward, Quaternion.identity);
