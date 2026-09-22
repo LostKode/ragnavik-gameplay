@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- Replace the reused Server Bridge icon with a dedicated Server Gameplay package icon.
+
 ## 1.0.3
 
 - Make the starter chest indestructible and prevent creatures from selecting it as a target.
