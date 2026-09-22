@@ -14,6 +14,7 @@ internal sealed class StarterChestModule : IDisposable
     private const string PrefabName = "RagnavikStarterChest";
     private const string ClaimRequestRpcName = "StarterChestClaimRequest";
     private const string ClaimResponseRpcName = "StarterChestClaimResponse";
+    private const float PresenceAuditSeconds = 24f * 60f * 60f;
     private static readonly Type[] ShowMessageParameterTypes =
         { typeof(MessageHud.MessageType), typeof(string), typeof(int), typeof(Sprite), typeof(bool), typeof(bool) };
     private static readonly Type[] AddItemParameterTypes =
@@ -118,16 +119,24 @@ internal sealed class StarterChestModule : IDisposable
         }
 
         var chest = PrefabManager.Instance.CreateClonedPrefab(PrefabName, "piece_chest_wood");
-        var container = chest.GetComponent<Container>();
-        if (container != null)
-        {
-            UnityEngine.Object.DestroyImmediate(container);
-        }
+        RemoveComponentsInChildren<Container>(chest);
+        RemoveComponentsInChildren<WearNTear>(chest);
+        RemoveComponentsInChildren<Destructible>(chest);
+        RemoveComponentsInChildren<StaticTarget>(chest);
+        RemoveComponentsInChildren<Piece>(chest);
 
         chest.AddComponent<StarterChestBehaviour>();
         PrefabManager.Instance.AddPrefab(new CustomPrefab(chest, false));
         _prefab = chest;
         _plugin.Log.LogInfo("Registered the personalized starter chest prefab.");
+    }
+
+    private static void RemoveComponentsInChildren<T>(GameObject prefab) where T : Component
+    {
+        foreach (var component in prefab.GetComponentsInChildren<T>(true))
+        {
+            UnityEngine.Object.DestroyImmediate(component);
+        }
     }
 
     private void TryPlaceChest()
@@ -159,7 +168,7 @@ internal sealed class StarterChestModule : IDisposable
                 _plugin.Log.LogWarning($"Removed {_found.Count - 1} duplicate starter chest(s); one remains.");
             }
 
-            _nextPlacementAttempt = float.MaxValue;
+            _nextPlacementAttempt = Time.realtimeSinceStartup + PresenceAuditSeconds;
             return;
         }
 
@@ -173,7 +182,7 @@ internal sealed class StarterChestModule : IDisposable
         var position = start.m_position + new Vector3(_offsetX.Value, 0f, _offsetZ.Value);
         position.y = ZoneSystem.instance.GetGroundHeight(position);
         UnityEngine.Object.Instantiate(_prefab, position, Quaternion.Euler(0f, _rotation.Value, 0f));
-        _nextPlacementAttempt = float.MaxValue;
+        _nextPlacementAttempt = Time.realtimeSinceStartup + PresenceAuditSeconds;
         _plugin.Log.LogInfo($"Placed starter chest at {position} in the existing StartTemple ring.");
     }
 
