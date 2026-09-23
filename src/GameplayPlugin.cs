@@ -12,7 +12,7 @@ public sealed class GameplayPlugin : BaseUnityPlugin
 {
     public const string ModGuid = "lostkode.ragnavik.gameplay";
     public const string ModName = "Ragnavik Gameplay";
-    public const string ModVersion = "1.0.3";
+    public const string ModVersion = "1.0.5";
 
     private StarterChestModule? _starterChest;
 
@@ -36,4 +36,3 @@ public sealed class GameplayPlugin : BaseUnityPlugin
 
     private void OnDestroy() => _starterChest?.Dispose();
 }
-

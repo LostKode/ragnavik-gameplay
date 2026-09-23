@@ -123,7 +123,14 @@ internal sealed class StarterChestModule : IDisposable
         RemoveComponentsInChildren<WearNTear>(chest);
         RemoveComponentsInChildren<Destructible>(chest);
         RemoveComponentsInChildren<StaticTarget>(chest);
-        RemoveComponentsInChildren<Piece>(chest);
+
+        // Piece participates in the vanilla hover target setup for this prefab.
+        // Keep it so the custom Hoverable and Interactable can be discovered,
+        // but explicitly prevent hammer dismantling.
+        foreach (var piece in chest.GetComponentsInChildren<Piece>(true))
+        {
+            piece.m_canBeRemoved = false;
+        }
 
         chest.AddComponent<StarterChestBehaviour>();
         PrefabManager.Instance.AddPrefab(new CustomPrefab(chest, false));
@@ -336,4 +343,3 @@ internal sealed class StarterChestModule : IDisposable
         }
     }
 }
-
