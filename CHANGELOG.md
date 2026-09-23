@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.5
+
+- Restore the starter chest interaction prompt and claim response while keeping it indestructible and unavailable for hammer dismantling.
+
 ## 1.0.4
 
 - Replace the reused Server Bridge icon with a dedicated Server Gameplay package icon.
@@ -47,4 +51,3 @@
 | Version | Changes |
 | --- | --- |
 | 0.1.0 | Add the existing-world-safe, per-account starter chest foundation. |
-
