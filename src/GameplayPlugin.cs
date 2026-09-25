@@ -7,12 +7,15 @@ namespace RagnavikGameplay;
 
 [BepInPlugin(ModGuid, ModName, ModVersion)]
 [BepInDependency(Jotunn.Main.ModGuid, BepInDependency.DependencyFlags.HardDependency)]
-[NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Minor)]
+[BepInDependency("org.bepinex.plugins.professions", BepInDependency.DependencyFlags.SoftDependency)]
+[NetworkCompatibility(CompatibilityLevel.EveryoneMustHaveMod, VersionStrictness.Patch)]
 public sealed class GameplayPlugin : BaseUnityPlugin
 {
     public const string ModGuid = "lostkode.ragnavik.gameplay";
     public const string ModName = "Ragnavik Gameplay";
-    public const string ModVersion = "1.0.3";
+    public const string ModVersion = "1.0.5";
+
+    private readonly ProfessionXpModule _professionXp = new();
 
     private StarterChestModule? _starterChest;
 
@@ -20,6 +23,7 @@ public sealed class GameplayPlugin : BaseUnityPlugin
 
     private void Awake()
     {
+        _professionXp.Install(Logger);
         var enabled = Config.Bind("Starter Chest", "Enabled", true, "Place and enable the personalized starter chest.");
         var kitId = Config.Bind("Starter Chest", "KitId", "starter-v1", "Changing this value allows every account to claim the new kit once.");
         var items = Config.Bind("Starter Chest", "Items", StarterKit.Default, "Comma-separated Prefab:Amount entries.");
@@ -34,6 +38,10 @@ public sealed class GameplayPlugin : BaseUnityPlugin
 
     private void Update() => _starterChest?.Update();
 
-    private void OnDestroy() => _starterChest?.Dispose();
+    private void OnDestroy()
+    {
+        _professionXp.Dispose();
+        _starterChest?.Dispose();
+    }
 }
 

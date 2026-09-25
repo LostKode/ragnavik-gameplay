@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.5
+
+- Earn 50% profession skill XP without selecting the profession, and normal XP when selected. Keep normal maximum skill levels and base character XP.
+- Update profession tooltips to explain the XP rates. Require matching Gameplay patch versions.
+
 ## 1.0.4
 
 - Replace the reused Server Bridge icon with a dedicated Server Gameplay package icon.

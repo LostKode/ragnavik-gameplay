@@ -25,3 +25,7 @@ Default kit:
 This is development work. It has not been added to either pack, published, or
 deployed to Production.
 
+
+## Profession experience
+
+With Professions 1.4.7, professions configured to block unselected experience instead grant 50% skill XP when unselected and 100% when selected. Both can reach the normal maximum level. Other skills and EpicMMO character XP are unchanged. Selecting a profession changes the rate immediately; previously earned levels remain intact.
