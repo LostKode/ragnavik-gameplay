@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using RagnavikGameplay;
 
+if (args.Length >= 2) ProfessionContracts.Verify(args[0], args[1]);
+if (args.Length == 3) ProfessionContracts.VerifyTooltip(args[2]);
+
 var tests = new (string Name, Action Run)[]
 {
+    ("profession selection changes XP without losing fractions", ProfessionXpRates),
     ("default kit parses", DefaultKitParses),
     ("invalid kit fails", InvalidKitFails),
     ("claim key is stable and kit scoped", ClaimKeyIsStableAndKitScoped),
@@ -61,3 +65,12 @@ static void NotEqual<T>(T left, T right)
     }
 }
 
+
+static void ProfessionXpRates()
+{
+    Equal(10f, ProfessionXpPolicy.Scale(10f, true));
+    Equal(5f, ProfessionXpPolicy.Scale(10f, false));
+    Equal(0.125f, ProfessionXpPolicy.Scale(0.25f, false));
+    Equal(0f, ProfessionXpPolicy.Scale(0f, false));
+    Equal(7.5f, ProfessionXpPolicy.Scale(5f, false) + ProfessionXpPolicy.Scale(5f, true));
+}
